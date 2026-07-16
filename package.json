@@ -1,0 +1,56 @@
+{
+	"name": "n8n-nodes-docuware",
+	"version": "0.1.0",
+	"description": "n8n community node for DocuWare document management: upload, search, update index fields and delete documents in any file cabinet",
+	"keywords": [
+		"n8n-community-node-package",
+		"docuware",
+		"dms",
+		"document-management",
+		"archive"
+	],
+	"license": "MIT",
+	"homepage": "https://github.com/benheidenreich/n8n-nodes-docuware",
+	"author": {
+		"name": "Benjamin Heidenreich",
+		"email": "ben.heidenreich.mail+n8n@googlemail.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/benheidenreich/n8n-nodes-docuware.git"
+	},
+	"engines": {
+		"node": ">=18.10"
+	},
+	"main": "index.js",
+	"scripts": {
+		"build": "tsc && node scripts/copy-assets.js",
+		"dev": "tsc --watch",
+		"lint": "eslint nodes credentials package.json",
+		"lintfix": "eslint nodes credentials package.json --fix",
+		"prepublishOnly": "npm run build && npm run lint"
+	},
+	"files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"credentials": [
+			"dist/credentials/DocuWareApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/DocuWare/DocuWare.node.js"
+		]
+	},
+	"devDependencies": {
+		"@types/node": "^20.14.0",
+		"@typescript-eslint/parser": "^7.15.0",
+		"eslint": "^8.57.0",
+		"eslint-plugin-n8n-nodes-base": "^1.16.3",
+		"n8n-workflow": "*",
+		"typescript": "^5.5.0"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}

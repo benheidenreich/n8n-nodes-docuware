@@ -1,0 +1,144 @@
+{
+  "name": "DocuWare Upload Beispiel",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Manuell starten",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1000000-0000-4000-8000-000000000001",
+              "name": "COMPANY",
+              "value": "Muster GmbH",
+              "type": "string"
+            },
+            {
+              "id": "b1000000-0000-4000-8000-000000000002",
+              "name": "INVOICE_NUMBER",
+              "value": "RE-2026-00123",
+              "type": "string"
+            },
+            {
+              "id": "b1000000-0000-4000-8000-000000000003",
+              "name": "DOCUMENT_DATE",
+              "value": "2026-07-12",
+              "type": "string"
+            },
+            {
+              "id": "b1000000-0000-4000-8000-000000000004",
+              "name": "AMOUNT",
+              "value": 199.9,
+              "type": "number"
+            },
+            {
+              "id": "b1000000-0000-4000-8000-000000000005",
+              "name": "dateiBase64",
+              "value": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA1OTUgODQyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA2MSA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDcyIDc3MCBUZCAoRG9jdVdhcmUgbjhuIEJlaXNwaWVsLURva3VtZW50KSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDM1MiAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQyMgolJUVPRgo=",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Beispieldaten (Felder anpassen!)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "dateiBase64",
+        "options": {
+          "fileName": "beispiel-rechnung.pdf",
+          "mimeType": "application/pdf"
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "Base64 zu Datei",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "operation": "upload",
+        "fileCabinetId": "",
+        "storeDialogId": "",
+        "binaryPropertyName": "data",
+        "fieldsMode": "auto"
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "DocuWare Upload",
+      "type": "n8n-nodes-docuware.docuWare",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ],
+      "credentials": {
+        "docuWareApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "DocuWare API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manuell starten": {
+      "main": [
+        [
+          {
+            "node": "Beispieldaten (Felder anpassen!)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Beispieldaten (Felder anpassen!)": {
+      "main": [
+        [
+          {
+            "node": "Base64 zu Datei",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base64 zu Datei": {
+      "main": [
+        [
+          {
+            "node": "DocuWare Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

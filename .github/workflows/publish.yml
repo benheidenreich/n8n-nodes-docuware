@@ -1,0 +1,52 @@
+name: Publish to npm
+
+# Publishes the package to npm with a provenance statement whenever a GitHub
+# Release is published. n8n requires verified community nodes to be published
+# via GitHub Actions with provenance (mandatory since 2026-05-01).
+#
+# Uses npm "Trusted Publishing" (OIDC) — no NPM_TOKEN secret is needed.
+# Set up the trusted publisher on npmjs.com first:
+#   npmjs.com -> your package/org -> Settings -> Trusted Publisher ->
+#   GitHub Actions, with repo = <owner>/n8n-nodes-docuware and
+#   workflow filename = publish.yml
+#
+# For the very first publish (package does not exist on npm yet) trusted
+# publishing cannot be configured against a non-existent package. Do the first
+# `npm publish --access public` manually, OR run this workflow once with an
+# NPM_TOKEN secret (see the commented step below), then switch to OIDC.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for npm provenance / trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npm run lint
+
+      # Requires npm >= 11.5.1 for OIDC trusted publishing.
+      - run: npm install -g npm@latest
+
+      - name: Publish (provenance)
+        run: npm publish --provenance --access public
+        # If you have NOT set up a trusted publisher yet and want to bootstrap
+        # with a token instead, uncomment the env block and add NPM_TOKEN as a
+        # repository secret (Settings -> Secrets and variables -> Actions):
+        # env:
+        #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
