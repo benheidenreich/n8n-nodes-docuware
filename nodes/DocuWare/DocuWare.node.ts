@@ -163,6 +163,26 @@ const DW_TYPE_TO_ELEMENT: Record<string, string> = {
 	Keywords: 'Keywords',
 };
 
+/** Type-appropriate example value for a DWFieldType (used by "Get Fields"). */
+function exampleValueForType(dwType: string): unknown {
+	switch (dwType) {
+		case 'Numeric':
+			return 4711;
+		case 'Decimal':
+			return '1190.00';
+		case 'Date':
+			return '2026-01-01T00:00:00Z';
+		case 'DateTime':
+			return '2026-01-01T12:00:00Z';
+		case 'Keywords':
+			return ['Stichwort1', 'Stichwort2'];
+		case 'Memo':
+			return 'Längerer Text...';
+		default:
+			return 'Beispieltext';
+	}
+}
+
 /**
  * A cabinet field counts as user-defined when Scope is "user" (Platform REST
  * response). Older payload variants exposing UserDefined/SystemField are
@@ -440,7 +460,8 @@ export class DocuWare implements INodeType {
 					{
 						name: 'Delete',
 						value: 'delete',
-						description: 'Delete a document from a file cabinet',
+						description:
+							'Delete a document from a file cabinet — depending on the cabinet configuration this is permanent',
 						action: 'Delete a document',
 					},
 					{
@@ -478,6 +499,13 @@ export class DocuWare implements INodeType {
 				displayOptions: { show: { resource: ['fileCabinet'] } },
 				options: [
 					{
+						name: 'Get Fields',
+						value: 'getFields',
+						description:
+							'List the index fields of a file cabinet, including a ready-made JSON template for the upload',
+						action: 'Get fields of a file cabinet',
+					},
+					{
 						name: 'Get Many',
 						value: 'getAll',
 						description: 'List many file cabinets of the organization',
@@ -485,6 +513,47 @@ export class DocuWare implements INodeType {
 					},
 				],
 				default: 'getAll',
+			},
+
+			{
+				displayName: 'File Cabinet Name or ID',
+				name: 'fileCabinetId',
+				type: 'options',
+				typeOptions: { loadOptionsMethod: 'getFileCabinets' },
+				required: true,
+				displayOptions: { show: { resource: ['fileCabinet'], operation: ['getFields'] } },
+				default: '',
+				description:
+					'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+			},
+			{
+				displayName: 'Output',
+				name: 'fieldsOutput',
+				type: 'options',
+				options: [
+					{
+						name: 'Field List',
+						value: 'fields',
+						description:
+							'One item per index field with DB name, display name, data type and an example value',
+					},
+					{
+						name: 'JSON Template',
+						value: 'template',
+						description:
+							'A single item with a JSON template of all index fields, ready to copy into a Set node',
+					},
+				],
+				default: 'fields',
+				displayOptions: { show: { resource: ['fileCabinet'], operation: ['getFields'] } },
+			},
+			{
+				displayName:
+					'Tip: run this operation once while building your workflow, copy the "JSON Template" output into a Set node (raw JSON mode) before the upload and replace the example values. The Upload operation in auto mode matches the field names automatically — this node does not need to stay in the production chain.',
+				name: 'getFieldsNotice',
+				type: 'notice',
+				default: '',
+				displayOptions: { show: { resource: ['fileCabinet'], operation: ['getFields'] } },
 			},
 
 			{
@@ -524,7 +593,7 @@ export class DocuWare implements INodeType {
 				default: 'data',
 				required: true,
 				displayOptions: { show: { resource: ['document'], operation: ['upload'] } },
-				hint: 'The name of the input binary field containing the file to be uploaded',
+				hint: 'Name of the input binary field containing the file to upload. The file is taken over directly — no Base64 conversion needed. Form Trigger: name = form field label. HTTP download: usually "data".',
 			},
 
 			{
@@ -557,7 +626,7 @@ export class DocuWare implements INodeType {
 
 			{
 				displayName:
-					'All properties of the input item are matched automatically against the field names of the selected file cabinet (case-insensitive). Non-matching properties are ignored. Define the structure with a preceding "Set" or "Code" node.',
+					'All properties of the input item are matched automatically against the field names of the selected file cabinet (case-insensitive). Non-matching properties are ignored. Define the structure with a preceding "Set" or "Code" node. Caution with a preceding Set/Edit Fields node: enable "Include Other Input Fields" and disable "Strip Binary Data" in its options, otherwise the file is lost before the upload.',
 				name: 'autoModeNotice',
 				type: 'notice',
 				default: '',
@@ -638,7 +707,8 @@ export class DocuWare implements INodeType {
 								name: 'value',
 								type: 'string',
 								default: '',
-								description: 'Dates in the format yyyy-MM-dd or yyyy-MM-ddTHH:mm:ss',
+								description:
+									'Dates: yyyy-MM-dd, ISO 8601 or raw /Date(ms)/ — converted automatically. Keywords fields expect an array (e.g. via expression); a comma-separated string is stored as a single keyword.',
 							},
 						],
 					},
@@ -651,6 +721,8 @@ export class DocuWare implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
+				description:
+					'The DWDOCID of the document — e.g. from the output of the Search operation (field DWDOCID)',
 				displayOptions: {
 					show: { resource: ['document'], operation: ['get', 'updateFields', 'delete'] },
 				},
@@ -689,7 +761,13 @@ export class DocuWare implements INodeType {
 								description:
 									'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 							},
-							{ displayName: 'Value', name: 'value', type: 'string', default: '' },
+							{
+								displayName: 'Value',
+								name: 'value',
+								type: 'string',
+								default: '',
+								hint: 'DocuWare matches exactly — use * as wildcard for contains searches, e.g. *rechnung*',
+							},
 						],
 					},
 				],
@@ -791,6 +869,35 @@ export class DocuWare implements INodeType {
 					continue;
 				}
 
+				// ================= FILE CABINET: GET FIELDS =================
+				if (resource === 'fileCabinet' && operation === 'getFields') {
+					const fileCabinetId = this.getNodeParameter('fileCabinetId', i) as string;
+					const fieldsOutput = this.getNodeParameter('fieldsOutput', i, 'fields') as string;
+					const fieldMeta = await getCabinetFieldMeta.call(this, fileCabinetId, cabinetFieldsCache);
+
+					if (fieldsOutput === 'template') {
+						const jsonTemplate: IDataObject = {};
+						for (const field of fieldMeta.values()) {
+							jsonTemplate[field.dbName] = exampleValueForType(field.dwType) as GenericValue;
+						}
+						returnData.push({ json: { jsonTemplate }, pairedItem: { item: i } });
+					} else {
+						for (const field of fieldMeta.values()) {
+							returnData.push({
+								json: {
+									dbName: field.dbName,
+									displayName: field.displayName,
+									dwType: field.dwType,
+									elementName: DW_TYPE_TO_ELEMENT[field.dwType] ?? 'String',
+									exampleValue: exampleValueForType(field.dwType) as GenericValue,
+								},
+								pairedItem: { item: i },
+							});
+						}
+					}
+					continue;
+				}
+
 				// ================= DOCUMENT: UPLOAD =================
 				if (resource === 'document' && operation === 'upload') {
 					const fileCabinetId = this.getNodeParameter('fileCabinetId', i) as string;
@@ -803,6 +910,22 @@ export class DocuWare implements INodeType {
 						i,
 						cabinetFieldsCache,
 					);
+
+					if (!items[i].binary?.[binaryPropertyName]) {
+						const available = Object.keys(items[i].binary ?? {});
+						throw new NodeOperationError(
+							this.getNode(),
+							`Binary field '${binaryPropertyName}' not found.` +
+								(available.length
+									? ` Available binary fields on this item: ${available.join(', ')}.`
+									: ' The input item contains no binary data at all.'),
+							{
+								itemIndex: i,
+								description:
+									'Hint: Set/Edit Fields nodes (v3.4+) drop binary data unless "Include Other Input Fields" is enabled and "Strip Binary Data" is disabled in the options. With the Form Trigger, the binary field is named after the form field label.',
+							},
+						);
+					}
 
 					const binaryData = this.helpers.assertBinaryData(i, binaryPropertyName);
 					const fileBuffer = await this.helpers.getBinaryDataBuffer(i, binaryPropertyName);
@@ -861,9 +984,18 @@ export class DocuWare implements INodeType {
 						cabinetFieldsCache,
 					);
 					if (fieldArray.length === 0) {
+						const inputProperties = Object.keys(items[i].json ?? {});
+						const fieldMeta = await getCabinetFieldMeta.call(
+							this,
+							fileCabinetId,
+							cabinetFieldsCache,
+						);
+						const cabinetFields = [...fieldMeta.values()].map((f) => f.dbName);
 						throw new NodeOperationError(this.getNode(), 'No index fields to update found', {
 							description:
-								'In auto mode the input item must contain at least one property matching a field of the file cabinet.',
+								'In auto mode the input item must contain at least one property matching a field of the file cabinet (DB name or display name, case-insensitive). ' +
+								`Input item properties: ${inputProperties.length ? inputProperties.join(', ') : '(none)'}. ` +
+								`Fields of the selected file cabinet: ${cabinetFields.join(', ')}.`,
 							itemIndex: i,
 						});
 					}

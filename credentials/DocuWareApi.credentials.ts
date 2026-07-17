@@ -37,6 +37,13 @@ export class DocuWareApi implements ICredentialType {
 			default: '',
 			required: true,
 		},
+		{
+			displayName:
+				'Note: the credential test only checks that the server URL points to a reachable DocuWare Platform. Username and password are verified on the first node execution — login errors show up there, not here. A dedicated API user with password login is recommended; SSO-only accounts may not work with this flow.',
+			name: 'credentialTestNotice',
+			type: 'notice',
+			default: '',
+		},
 	];
 
 	// Validates that the server URL points to a reachable DocuWare Platform.

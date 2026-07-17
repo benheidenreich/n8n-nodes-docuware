@@ -1,6 +1,6 @@
 {
 	"name": "@benheidenreich/n8n-nodes-docuware",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"description": "n8n community node for DocuWare document management: upload, search, update index fields and delete documents in any file cabinet",
 	"keywords": [
 		"n8n-community-node-package",
