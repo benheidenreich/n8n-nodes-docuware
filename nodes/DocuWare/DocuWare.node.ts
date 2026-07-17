@@ -164,6 +164,18 @@ const DW_TYPE_TO_ELEMENT: Record<string, string> = {
 };
 
 /**
+ * A cabinet field counts as user-defined when Scope is "user" (Platform REST
+ * response). Older payload variants exposing UserDefined/SystemField are
+ * handled as fallback. The field name lives in DBFieldName (DBName as legacy
+ * fallback).
+ */
+function isUserField(field: IDataObject): boolean {
+	if (field.Scope !== undefined) return String(field.Scope).toLowerCase() === 'user';
+	if (field.UserDefined !== undefined) return field.UserDefined === true;
+	return field.SystemField !== true;
+}
+
+/**
  * Loads the user-defined index fields of a file cabinet (cached per execution)
  * as a map: DBNAME (uppercase) → field metadata.
  */
@@ -183,10 +195,11 @@ async function getCabinetFieldMeta(
 
 	const meta = new Map<string, FieldMeta>();
 	for (const field of (response.Fields as IDataObject[]) ?? []) {
-		if (field.UserDefined !== true) continue;
-		meta.set(String(field.DBName).toUpperCase(), {
-			dbName: String(field.DBName),
-			displayName: String(field.DisplayName ?? field.DBName),
+		if (!isUserField(field)) continue;
+		const dbName = field.DBFieldName ?? field.DBName;
+		meta.set(String(dbName).toUpperCase(), {
+			dbName: String(dbName),
+			displayName: String(field.DisplayName ?? dbName),
 			dwType: String(field.DWFieldType ?? 'Text'),
 		});
 	}
@@ -743,8 +756,11 @@ export class DocuWare implements INodeType {
 				)) as IDataObject;
 				const fields = (response.Fields as IDataObject[]) ?? [];
 				return fields
-					.filter((f) => f.UserDefined === true)
-					.map((f) => ({ name: `${f.DisplayName} (${f.DBName})`, value: String(f.DBName) }))
+					.filter((f) => isUserField(f))
+					.map((f) => {
+						const dbName = String(f.DBFieldName ?? f.DBName);
+						return { name: `${f.DisplayName ?? dbName} (${dbName})`, value: dbName };
+					})
 					.sort((a, b) => a.name.localeCompare(b.name));
 			},
 		},
