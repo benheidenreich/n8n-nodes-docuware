@@ -12,7 +12,7 @@ name: Publish to npm
 #
 # --- After the first publish (optional, recommended by n8n) ---
 # Configure a Trusted Publisher on npmjs.com:
-#   npmjs.com -> package "n8n-nodes-docuware" -> Settings -> Trusted Publisher
+#   npmjs.com -> package "@benheidenreich/n8n-nodes-docuware" -> Settings -> Trusted Publisher
 #   -> GitHub Actions, repo = benheidenreich/n8n-nodes-docuware, workflow = publish.yml
 # Then you may delete the NPM_TOKEN secret and remove the `env:` block below;
 # publishing becomes fully tokenless.

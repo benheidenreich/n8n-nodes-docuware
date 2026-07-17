@@ -1,4 +1,4 @@
-# n8n-nodes-docuware
+# @benheidenreich/n8n-nodes-docuware
 
 This is an n8n community node. It lets you use [DocuWare](https://docuware.com) in your n8n workflows.
 
@@ -18,7 +18,7 @@ DocuWare is a document management system (DMS) for archiving, indexing and retri
 
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
 
-Package name: `n8n-nodes-docuware`
+Package name: `@benheidenreich/n8n-nodes-docuware`
 
 ## Operations
 

@@ -21,7 +21,7 @@ Die **Verifizierung** durch n8n ist nur ein Qualitäts-Badge (u.a. für n8n Clou
    ```
 
 2. In n8n als Owner anmelden → **Settings → Community Nodes → Install**.
-3. Paketname eingeben: `n8n-nodes-docuware`, Risiko-Checkbox bestätigen, **Install**.
+3. Paketname eingeben: `@benheidenreich/n8n-nodes-docuware`, Risiko-Checkbox bestätigen, **Install**.
 4. Fertig — die Node „DocuWare" erscheint sofort im Node-Panel. Updates später ebenfalls über Settings → Community Nodes.
 
 Das funktioniert **direkt nachdem du selbst auf npm veröffentlicht hast** — die n8n-Verifizierung spielt dafür keine Rolle.
@@ -39,12 +39,12 @@ npm run build
 npm pack
 ```
 
-`npm pack` erzeugt die Datei **`n8n-nodes-docuware-0.1.0.tgz`** — das ist exakt das, was auch auf npm landen würde (nur `dist/`, `package.json`, `README.md`; keine privaten Daten).
+`npm pack` erzeugt die Datei **`benheidenreich-n8n-nodes-docuware-0.1.0.tgz`** — das ist exakt das, was auch auf npm landen würde (nur `dist/`, `package.json`, `README.md`; keine privaten Daten).
 
 ### Schritt 2: Datei auf den Linux-Server kopieren
 
 ```bash
-scp n8n-nodes-docuware-0.1.0.tgz benutzer@dein-server:/tmp/
+scp benheidenreich-n8n-nodes-docuware-0.1.0.tgz benutzer@dein-server:/tmp/
 ```
 
 (alternativ WinSCP o.ä.)
@@ -55,10 +55,10 @@ Community-Nodes leben im n8n-Datenverzeichnis unter `~/.n8n/nodes`. Container-Na
 
 ```bash
 # Paketdatei in den Container kopieren
-docker cp /tmp/n8n-nodes-docuware-0.1.0.tgz n8n:/tmp/
+docker cp /tmp/benheidenreich-n8n-nodes-docuware-0.1.0.tgz n8n:/tmp/
 
 # Als node-Benutzer (wichtig, sonst Rechteprobleme) installieren
-docker exec -it -u node n8n sh -c "mkdir -p /home/node/.n8n/nodes && cd /home/node/.n8n/nodes && npm install /tmp/n8n-nodes-docuware-0.1.0.tgz"
+docker exec -it -u node n8n sh -c "mkdir -p /home/node/.n8n/nodes && cd /home/node/.n8n/nodes && npm install /tmp/benheidenreich-n8n-nodes-docuware-0.1.0.tgz"
 
 # n8n neu starten, damit die Node geladen wird
 docker restart n8n
@@ -67,8 +67,8 @@ docker restart n8n
 Mit docker-compose entsprechend:
 
 ```bash
-docker compose cp /tmp/n8n-nodes-docuware-0.1.0.tgz n8n:/tmp/
-docker compose exec -u node n8n sh -c "mkdir -p /home/node/.n8n/nodes && cd /home/node/.n8n/nodes && npm install /tmp/n8n-nodes-docuware-0.1.0.tgz"
+docker compose cp /tmp/benheidenreich-n8n-nodes-docuware-0.1.0.tgz n8n:/tmp/
+docker compose exec -u node n8n sh -c "mkdir -p /home/node/.n8n/nodes && cd /home/node/.n8n/nodes && npm install /tmp/benheidenreich-n8n-nodes-docuware-0.1.0.tgz"
 docker compose restart n8n
 ```
 
@@ -92,7 +92,7 @@ docker compose restart n8n
 ## Wieder deinstallieren
 
 ```bash
-docker exec -it -u node n8n sh -c "cd /home/node/.n8n/nodes && npm uninstall n8n-nodes-docuware"
+docker exec -it -u node n8n sh -c "cd /home/node/.n8n/nodes && npm uninstall @benheidenreich/n8n-nodes-docuware"
 docker restart n8n
 ```
 

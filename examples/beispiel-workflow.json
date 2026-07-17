@@ -88,7 +88,7 @@
       },
       "id": "a1000000-0000-4000-8000-000000000004",
       "name": "DocuWare Upload",
-      "type": "n8n-nodes-docuware.docuWare",
+      "type": "@benheidenreich/n8n-nodes-docuware.docuWare",
       "typeVersion": 1,
       "position": [
         660,

@@ -1,6 +1,6 @@
 # DocuWare-Node für n8n — Anleitung (Deutsch)
 
-Diese Anleitung erklärt, wie die Community-Node `n8n-nodes-docuware` verwendet wird — inklusive Beispiel-Workflow zum Befüllen aller Felder.
+Diese Anleitung erklärt, wie die Community-Node `@benheidenreich/n8n-nodes-docuware` verwendet wird — inklusive Beispiel-Workflow zum Befüllen aller Felder.
 
 ## 1. Was die Node kann
 
@@ -15,12 +15,12 @@ Diese Anleitung erklärt, wie die Community-Node `n8n-nodes-docuware` verwendet 
 
 ## 2. Installation
 
-**n8n Cloud / GUI:** `Settings → Community Nodes → Install` → Paketname `n8n-nodes-docuware` eingeben.
+**n8n Cloud / GUI:** `Settings → Community Nodes → Install` → Paketname `@benheidenreich/n8n-nodes-docuware` eingeben.
 
 **Self-hosted (Docker/npm):**
 
 ```bash
-npm install n8n-nodes-docuware
+npm install @benheidenreich/n8n-nodes-docuware
 ```
 
 (im n8n-Datenverzeichnis unter `~/.n8n/nodes/`, danach n8n neu starten)
