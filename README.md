@@ -72,4 +72,5 @@ To target different cabinets dynamically, switch the File Cabinet parameter to a
 
 ## Version history
 
+- **0.1.1** — Maintenance release: publishing moved to tokenless npm Trusted Publishing (OIDC); no functional changes.
 - **0.1.0** — Initial release: document upload, get, search, update fields, delete; file cabinet listing; automatic field detection with auto/JSON/manual input modes.
