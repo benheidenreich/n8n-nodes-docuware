@@ -4,16 +4,18 @@ name: Publish to npm
 # Release is published. n8n requires verified community nodes to be published
 # via GitHub Actions with provenance (mandatory since 2026-05-01).
 #
-# Uses npm "Trusted Publishing" (OIDC) — no NPM_TOKEN secret is needed.
-# Set up the trusted publisher on npmjs.com first:
-#   npmjs.com -> your package/org -> Settings -> Trusted Publisher ->
-#   GitHub Actions, with repo = <owner>/n8n-nodes-docuware and
-#   workflow filename = publish.yml
+# --- First publish (package does not exist on npm yet) ---
+# npm "Trusted Publishing" (tokenless OIDC) can only be configured on a package
+# that ALREADY exists. So the very first release is published with an npm token
+# stored as the GitHub secret NPM_TOKEN. --provenance still produces a full
+# provenance attestation because we run on GitHub Actions with id-token: write.
 #
-# For the very first publish (package does not exist on npm yet) trusted
-# publishing cannot be configured against a non-existent package. Do the first
-# `npm publish --access public` manually, OR run this workflow once with an
-# NPM_TOKEN secret (see the commented step below), then switch to OIDC.
+# --- After the first publish (optional, recommended by n8n) ---
+# Configure a Trusted Publisher on npmjs.com:
+#   npmjs.com -> package "n8n-nodes-docuware" -> Settings -> Trusted Publisher
+#   -> GitHub Actions, repo = benheidenreich/n8n-nodes-docuware, workflow = publish.yml
+# Then you may delete the NPM_TOKEN secret and remove the `env:` block below;
+# publishing becomes fully tokenless.
 
 on:
   release:
@@ -31,7 +33,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22' # >= 22.14 needed for OIDC trusted publishing later
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm ci
@@ -40,13 +42,10 @@ jobs:
 
       - run: npm run lint
 
-      # Requires npm >= 11.5.1 for OIDC trusted publishing.
+      # npm >= 11.5.1 for provenance / trusted publishing
       - run: npm install -g npm@latest
 
       - name: Publish (provenance)
         run: npm publish --provenance --access public
-        # If you have NOT set up a trusted publisher yet and want to bootstrap
-        # with a token instead, uncomment the env block and add NPM_TOKEN as a
-        # repository secret (Settings -> Secrets and variables -> Actions):
-        # env:
-        #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
